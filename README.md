@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src=".github/assets/logo.png" width="180" alt="ErisPulse TerminalAdapter" />
+<img src=".github/assets/ErisPulseLogo.png" width="180" alt="ErisPulse TerminalAdapter" />
 
 # ErisPulse TerminalAdapter
 
