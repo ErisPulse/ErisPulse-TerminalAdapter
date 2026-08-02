@@ -1,0 +1,28 @@
+[project]
+name = "ErisPulse-TerminalAdapter"
+version = "1.0.0"
+description = "ErisPulse TerminalAdapter - 终端适配器"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [ { name = "ErisDev" } ]
+keywords = ["erispulse", "adapter", "terminal", "cli", "debug"]
+
+dependencies = [
+    "ErisPulse>=2.7.0",
+]
+
+[project.urls]
+"homepage" = "https://github.com/ErisPulse/ErisPulse-TerminalAdapter"
+"repository" = "https://github.com/ErisPulse/ErisPulse-TerminalAdapter"
+"ErisPulse" = "https://github.com/ErisPulse/ErisPulse"
+
+[project.entry-points."erispulse.adapter"]
+"terminal" = "TerminalAdapter:TerminalAdapter"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["TerminalAdapter"]
