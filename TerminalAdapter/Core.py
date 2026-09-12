@@ -14,6 +14,12 @@ from typing import Any
 
 from ErisPulse.Core import BaseAdapter, SendDSL
 from ErisPulse.Core.Bases import BaseConfig, BaseI18n, I18nKey
+from ErisPulse.runtime.tasks import spawn_background
+
+__version__ = "1.1.0"
+
+# 软依赖的框架最低版本（运行时检测，仅提示不强制）
+MIN_FRAMEWORK_VERSION = (2, 7, 1)
 
 
 class TerminalAdapter(BaseAdapter):
@@ -119,6 +125,37 @@ class TerminalAdapter(BaseAdapter):
         super().__init__(sdk)
         self._running = False
         self._read_task: asyncio.Task | None = None
+        self._check_framework_version()
+        self._get_logger().info(f"TerminalAdapter v{__version__} 已加载")
+
+    @staticmethod
+    def _parse_version(version_str: str) -> tuple:
+        """解析版本号为可比较的三元组（忽略 dev/预发布后缀，如 2.8.0-dev.3 → (2, 8, 0)）"""
+        parts = []
+        for piece in str(version_str).split("."):
+            digits = "".join(ch for ch in piece if ch.isdigit())
+            parts.append(int(digits) if digits else 0)
+        while len(parts) < 3:
+            parts.append(0)
+        return tuple(parts[:3])
+
+    def _check_framework_version(self):
+        """软依赖检测：框架版本过低时打警告（不阻断加载）"""
+        try:
+            from importlib.metadata import version as _pkg_version
+
+            raw = _pkg_version("ErisPulse")
+        except Exception:
+            return
+        try:
+            if self._parse_version(raw) < MIN_FRAMEWORK_VERSION:
+                self._get_logger().warning(
+                    f"当前 ErisPulse 版本 {raw} 过低：TerminalAdapter v{__version__} 需要 >= "
+                    f"{'.'.join(map(str, MIN_FRAMEWORK_VERSION))}，"
+                    "部分功能可能不可用，建议升级框架"
+                )
+        except Exception:
+            pass
 
     async def start(self) -> None:
         """启动适配器：上线 Bot、打印欢迎语、启动 stdin 读取循环"""
@@ -141,7 +178,8 @@ class TerminalAdapter(BaseAdapter):
         self._output_raw(say("TerminalAdapter.input_hint"))
         self._write_raw("\n")
 
-        self._read_task = asyncio.create_task(self._read_loop())
+        coro = self._read_loop()
+        self._read_task = spawn_background(coro) if spawn_background is not None else asyncio.create_task(coro)
         self.logger.info("TerminalAdapter 已启动")
 
     async def shutdown(self) -> None:
