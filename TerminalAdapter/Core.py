@@ -16,7 +16,33 @@ from ErisPulse.Core import BaseAdapter, SendDSL
 from ErisPulse.Core.Bases import BaseConfig, BaseI18n, I18nKey
 from ErisPulse.runtime.tasks import spawn_background
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
+
+
+def _forward_node_text(node) -> str:
+    """提取合并转发节点 content 中全部 text 段文本（段间直接连接）"""
+    data = node.get("data") or {}
+    return "".join(
+        str(seg.get("data", {}).get("text") or "")
+        for seg in (data.get("content") or [])
+        if isinstance(seg, dict) and seg.get("type") == "text"
+    )
+
+
+def _forward_nodes_plain(nodes, separator: str = "\n") -> str:
+    """合并转发节点降级纯文本：每条「昵称: 正文」（终端无富文本能力）"""
+    lines = []
+    for node in nodes if isinstance(nodes, list) else [nodes]:
+        if not isinstance(node, dict):
+            continue
+        data = node.get("data") or {}
+        nickname = str(data.get("nickname") or "").strip()
+        text = _forward_node_text(node).strip()
+        if nickname and text:
+            lines.append(f"{nickname}: {text}")
+        elif text:
+            lines.append(text)
+    return separator.join(lines)
 
 # 软依赖的框架最低版本（运行时检测，仅提示不强制）
 MIN_FRAMEWORK_VERSION = (2, 7, 1)
@@ -109,6 +135,16 @@ class TerminalAdapter(BaseAdapter):
         """终端发送 DSL：把 OB12 消息段渲染为文本打印到 stdout。"""
 
         def Raw_ob12(self, message, **kwargs):
+            if isinstance(message, dict):
+                message = [message]
+
+            # node 段降级为纯文本原文输出（内容不丢失）
+            message = [
+                {"type": "text", "data": {"text": _forward_nodes_plain(seg)}}
+                if isinstance(seg, dict) and seg.get("type") == "node"
+                else seg
+                for seg in message
+            ]
 
             async def _do_send():
                 segments = self._apply_modifiers(message)
