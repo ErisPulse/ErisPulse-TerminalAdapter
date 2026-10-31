@@ -1,23 +1,19 @@
+[English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [Русский](README.ru.md)
+
 <div align="center">
 
-<img src=".github/assets/ErisPulseLogo.png" width="180" alt="ErisPulse TerminalAdapter" />
+<img src="https://raw.githubusercontent.com/ErisPulse/ErisPulse/main/.github/assets/ErisPulseLogo.png" width="180" alt="ErisPulse-TerminalAdapter" />
 
-# ErisPulse TerminalAdapter
+# ErisPulse-TerminalAdapter
 
-**The terminal is the chat — develop and test your Bot with zero platform setup.**
-
-A terminal adapter for [ErisPulse](https://github.com/ErisPulse/ErisPulse). Each line you type in the terminal is emitted as a private message, and the bot's replies are printed back to stdout. Handy for developing and testing handlers without registering a real platform.
+**ErisPulse Terminal adapter — the terminal is the chat, zero-config**
 
 <p>
   <a href="https://pypi.org/project/ErisPulse-TerminalAdapter/"><img src="https://img.shields.io/pypi/v/ErisPulse-TerminalAdapter?style=for-the-badge&logo=pypi&logoColor=white" alt="PyPI"></a>
   <a href="https://pypi.org/project/ErisPulse-TerminalAdapter/"><img src="https://img.shields.io/badge/Python-3.10+-FFD43B?style=for-the-badge&logo=python&logoColor=blue" alt="Python"></a>
-  <a href="./LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" alt="License"></a>
-  <a href="https://github.com/ErisPulse/ErisPulse-TerminalAdapter"><img src="https://img.shields.io/github/stars/ErisPulse/ErisPulse-TerminalAdapter?style=for-the-badge&logo=github&color=brightgreen" alt="Stars"></a>
-  <a href="https://pepy.tech/project/ErisPulse-TerminalAdapter"><img src="https://img.shields.io/pepy/dt/ErisPulse-TerminalAdapter?style=for-the-badge&color=blue" alt="Downloads"></a>
-  <a href="https://github.com/ErisPulse/ErisPulse"><img src="https://img.shields.io/badge/Powered_by-ErisPulse-FF6B9D?style=for-the-badge&logo=bookstack&logoColor=white" alt="ErisPulse"></a>
+  <a href="https://github.com/ErisPulse/ErisPulse/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" alt="License"></a>
+  <img src="https://raw.githubusercontent.com/ErisPulse/.github/main/assets/badges/adapter.svg" alt="ErisPulse">
 </p>
-
-[English](#english) | [简体中文](#简体中文)
 
 </div>
 
