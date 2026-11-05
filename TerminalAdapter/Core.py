@@ -16,7 +16,7 @@ from ErisPulse.Core import BaseAdapter, SendDSL
 from ErisPulse.Core.Bases import BaseConfig, BaseI18n, I18nKey
 from ErisPulse.runtime.tasks import spawn_background
 
-__version__ = "1.2.0"
+__version__ = "1.2.1"
 
 
 def _forward_node_text(node) -> str:
@@ -326,21 +326,30 @@ class TerminalAdapter(BaseAdapter):
         await adapter_mgr.emit(event)
 
     @staticmethod
-    def _render_segments(segments: list[dict]) -> str:
+    def _display_value(value) -> str:
+        """段字段值的显示文本：bytes/bytearray 显示为 <binary N bytes>"""
+        if isinstance(value, (bytes, bytearray)):
+            return f"<binary {len(value)} bytes>"
+        return str(value)
+
+    @classmethod
+    def _render_segments(cls, segments: list[dict]) -> str:
         parts: list[str] = []
         for seg in segments:
             seg_type = seg.get("type", "")
             data = seg.get("data", {}) or {}
             if seg_type == "text":
-                parts.append(str(data.get("text", "")))
+                parts.append(cls._display_value(data.get("text", "")))
             elif seg_type == "image":
-                parts.append(f"[image: {data.get('file', '')}]")
+                parts.append(f"[image: {cls._display_value(data.get('file', ''))}]")
             elif seg_type == "audio":
-                parts.append(f"[voice: {data.get('file', '')}]")
+                parts.append(f"[voice: {cls._display_value(data.get('file', ''))}]")
             elif seg_type == "video":
-                parts.append(f"[video: {data.get('file', '')}]")
+                parts.append(f"[video: {cls._display_value(data.get('file', ''))}]")
             elif seg_type == "file":
-                parts.append(f"[file: {data.get('file', '')}]")
+                file_repr = cls._display_value(data.get("file", ""))
+                filename = data.get("filename")
+                parts.append(f"[file: {file_repr} ({filename})]" if filename else f"[file: {file_repr}]")
             elif seg_type == "mention":
                 parts.append(f"@{data.get('user_id', '')}")
             elif seg_type == "mention_all":
