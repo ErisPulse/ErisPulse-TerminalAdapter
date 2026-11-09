@@ -12,11 +12,24 @@ import uuid
 from dataclasses import dataclass, field
 from typing import Any
 
-from ErisPulse.Core import BaseAdapter, SendDSL
+from ErisPulse.Core import BaseAdapter
 from ErisPulse.Core.Bases import BaseConfig, BaseI18n, I18nKey
 from ErisPulse.runtime.tasks import spawn_background
 
-__version__ = "1.2.1"
+__version__ = "1.2.2"
+
+# get_supported_actions 返回的动作名列表
+SUPPORTED_ACTIONS = [
+    "get_status",
+    "get_version",
+    "get_supported_actions",
+    "get_self_info",
+    "get_user_info",
+    "get_friend_list",
+    "get_user_list",
+    "get_group_list",
+    "send_message",
+]
 
 
 def _forward_node_text(node) -> str:
@@ -131,7 +144,7 @@ class TerminalAdapter(BaseAdapter):
             ru="Введите /help для списка команд.",
         )
 
-    class Send(SendDSL):
+    class Send(BaseAdapter.Send):
         """终端发送 DSL：把 OB12 消息段渲染为文本打印到 stdout。"""
 
         def Raw_ob12(self, message, **kwargs):
@@ -160,6 +173,7 @@ class TerminalAdapter(BaseAdapter):
     def __init__(self, sdk=None):
         super().__init__(sdk)
         self._running = False
+        self._boot_time = int(time.time())
         self._read_task: asyncio.Task | None = None
         self._check_framework_version()
         self._get_logger().info(f"TerminalAdapter v{__version__} 已加载")
@@ -197,6 +211,7 @@ class TerminalAdapter(BaseAdapter):
         """启动适配器：上线 Bot、打印欢迎语、启动 stdin 读取循环"""
         cfg = self.cfg
         self._running = True
+        self._boot_time = int(time.time())
 
         await self.emit_meta("connect", cfg.bot_id, user_name=cfg.bot_name, avatar="")
 
@@ -245,8 +260,19 @@ class TerminalAdapter(BaseAdapter):
 
     async def call_api(self, endpoint: str, **params: Any) -> dict:
         """模拟常用平台 API，使框架标准动作可用。"""
+        # 单账户适配器：剔除多账户字段，避免泄漏到平台参数
+        params.pop("account_id", None)
+        params.pop("_account_id", None)
         cfg = self.cfg
 
+        if endpoint == "get_status":
+            return self.make_response(data={"enabled": self._running, "boot_time": self._boot_time})
+        if endpoint == "get_version":
+            return self.make_response(
+                data={"impl": "TerminalAdapter", "version": __version__, "onebot_version": "v12"}
+            )
+        if endpoint == "get_supported_actions":
+            return self.make_response(data=list(SUPPORTED_ACTIONS))
         if endpoint == "get_self_info":
             return self.make_response(data={"user_id": cfg.bot_id, "user_name": cfg.bot_name, "platform": "terminal"})
         if endpoint == "get_user_info":
@@ -269,7 +295,7 @@ class TerminalAdapter(BaseAdapter):
         if endpoint == "send_message":
             return self.make_response(message_id=str(uuid.uuid4()))
         if endpoint == "delete_message":
-            return self.make_response()  # 终端无法撤回，返回成功
+            return self.make_error(retcode=10002, message="终端适配器无法撤回消息")
 
         return self.make_error(retcode=10002, message=f"终端适配器不支持 {endpoint}")
 
@@ -309,6 +335,7 @@ class TerminalAdapter(BaseAdapter):
         event = {
             "id": str(uuid.uuid4()),
             "time": int(time.time()),
+            "message_id": str(uuid.uuid4()),
             "type": "message",
             "detail_type": "private",
             "platform": "terminal",
